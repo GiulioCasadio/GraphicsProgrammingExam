@@ -89,6 +89,16 @@ void Game::Render()
 	PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
 	// TODO: Add your rendering code here.
+	ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap() };
+	commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
+
+	m_spriteBatch->Begin(commandList);
+
+	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(Descriptors::Paddle),
+		GetTextureSize(m_texture.Get()),
+		m_screenPos, nullptr, Colors::White, 0.f, m_origin);
+
+	m_spriteBatch->End();
 
 	PIXEndEvent(commandList);
 
@@ -206,6 +216,17 @@ void Game::CreateDeviceDependentResources()
 	CreateShaderResourceView(device, m_texture.Get(),
 		m_resourceDescriptors->GetCpuHandle(Descriptors::Paddle));
 
+	RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
+		m_deviceResources->GetDepthBufferFormat());
+
+	SpriteBatchPipelineStateDescription pd(rtState);
+	m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pd);
+
+	XMUINT2 paddleSize = GetTextureSize(m_texture.Get());
+
+	m_origin.x = float(paddleSize.x / 2);
+	m_origin.y = float(paddleSize.y / 2);
+
 	auto uploadResourcesFinished = resourceUpload.End(
 		m_deviceResources->GetCommandQueue());
 
@@ -216,6 +237,12 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     // TODO: Initialize windows-size dependent objects here.
+	auto viewport = m_deviceResources->GetScreenViewport();
+	m_spriteBatch->SetViewport(viewport);
+
+	auto size = m_deviceResources->GetOutputSize();
+	m_screenPos.x = float(size.right) / 2.f;
+	m_screenPos.y = float(size.bottom) / 2.f;
 }
 
 void Game::OnDeviceLost()
@@ -227,6 +254,7 @@ void Game::OnDeviceLost()
 
 	m_texture.Reset();
 	m_resourceDescriptors.reset();
+	m_spriteBatch.reset();
 }
 
 void Game::OnDeviceRestored()
