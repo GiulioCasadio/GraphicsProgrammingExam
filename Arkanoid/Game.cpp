@@ -8,6 +8,7 @@
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
+using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
@@ -74,31 +75,27 @@ void Game::Update(DX::StepTimer const& timer)
 // Draws the scene.
 void Game::Render()
 {
-    // Don't try to render anything before the first Update.
-    if (m_timer.GetFrameCount() == 0)
-    {
-        return;
-    }
+	// Don't try to render anything before the first Update.
+	if (m_timer.GetFrameCount() == 0)
+	{
+		return;
+	}
 
-    // Prepare the command list to render a new frame.
-    m_deviceResources->Prepare();
-    Clear();
+	// Prepare the command list to render a new frame.
+	m_deviceResources->Prepare();
+	Clear();
 
-    auto commandList = m_deviceResources->GetCommandList();
-    PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
+	auto commandList = m_deviceResources->GetCommandList();
+	PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
-    // TODO: Add your rendering code here.
+	// TODO: Add your rendering code here.
 
-    PIXEndEvent(commandList);
+	PIXEndEvent(commandList);
 
-    // Show the new frame.
-    PIXBeginEvent(PIX_COLOR_DEFAULT, L"Present");
-    m_deviceResources->Present();
-
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    // m_graphicsMemory->Commit(m_deviceResources->GetCommandQueue());
-
-    PIXEndEvent();
+	// Show the new frame.
+	PIXBeginEvent(m_deviceResources->GetCommandQueue(), PIX_COLOR_DEFAULT, L"Present");
+	m_deviceResources->Present();
+	PIXEndEvent(m_deviceResources->GetCommandQueue());
 }
 
 // Helper method to clear the back buffers.
@@ -192,9 +189,27 @@ void Game::CreateDeviceDependentResources()
     }
 
     // If using the DirectX Tool Kit for DX12, uncomment this line:
-    // m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
+    m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
 
     // TODO: Initialize device dependent objects here (independent of window size).
+	m_resourceDescriptors = std::make_unique<DescriptorHeap>(device,
+		Descriptors::Count);
+
+	ResourceUploadBatch resourceUpload(device);
+
+	resourceUpload.Begin();
+
+	DX::ThrowIfFailed(
+		CreateWICTextureFromFile(device, resourceUpload, L"Assets/Paddle.png",
+			m_texture.ReleaseAndGetAddressOf()));
+
+	CreateShaderResourceView(device, m_texture.Get(),
+		m_resourceDescriptors->GetCpuHandle(Descriptors::Paddle));
+
+	auto uploadResourcesFinished = resourceUpload.End(
+		m_deviceResources->GetCommandQueue());
+
+	uploadResourcesFinished.wait();
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
@@ -208,7 +223,10 @@ void Game::OnDeviceLost()
     // TODO: Add Direct3D resource cleanup here.
 
     // If using the DirectX Tool Kit for DX12, uncomment this line:
-    // m_graphicsMemory.reset();
+    m_graphicsMemory.reset();
+
+	m_texture.Reset();
+	m_resourceDescriptors.reset();
 }
 
 void Game::OnDeviceRestored()

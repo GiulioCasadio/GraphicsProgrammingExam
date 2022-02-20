@@ -211,12 +211,24 @@
     <ResourceCompile Include="resource.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Assets\Ball.png" />
+    <Image Include="Assets\Paddle.png" />
     <Image Include="directx.ico" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="settings.manifest" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\packages\directxtk12_uwp.2021.11.8.1\build\native\directxtk12_uwp.targets" Condition="Exists('..\packages\directxtk12_uwp.2021.11.8.1\build\native\directxtk12_uwp.targets')" />
   </ImportGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Questo progetto fa riferimento a uno o più pacchetti NuGet che non sono presenti in questo computer. Usare lo strumento di ripristino dei pacchetti NuGet per scaricarli. Per altre informazioni, vedere http://go.microsoft.com/fwlink/?LinkID=322105. Il file mancante è {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\directxtk12_uwp.2021.11.8.1\build\native\directxtk12_uwp.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\directxtk12_uwp.2021.11.8.1\build\native\directxtk12_uwp.targets'))" />
+  </Target>
 </Project>
