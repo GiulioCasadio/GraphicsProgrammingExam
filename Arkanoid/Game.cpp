@@ -96,7 +96,7 @@ void Game::Render()
 
 	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(Descriptors::Paddle),
 		GetTextureSize(m_texture.Get()),
-		m_screenPos, nullptr, Colors::White, 0.f, m_origin);
+		m_screenPos, nullptr, Colors::White, 0.f, m_origin); 
 
 	m_spriteBatch->End();
 
@@ -219,7 +219,8 @@ void Game::CreateDeviceDependentResources()
 	RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
 		m_deviceResources->GetDepthBufferFormat());
 
-	SpriteBatchPipelineStateDescription pd(rtState);
+	SpriteBatchPipelineStateDescription pd(rtState,
+		&CommonStates::NonPremultiplied);
 	m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pd);
 
 	XMUINT2 paddleSize = GetTextureSize(m_texture.Get());
