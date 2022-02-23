@@ -71,6 +71,8 @@ void Game::Update(DX::StepTimer const& timer)
     // TODO: Add your game logic here.
     elapsedTime;
 
+	player.MovePaddle(false);
+
     PIXEndEvent();
 }
 #pragma endregion
