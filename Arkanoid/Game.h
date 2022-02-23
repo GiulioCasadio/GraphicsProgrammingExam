@@ -57,6 +57,9 @@ private:
     void CreateDeviceDependentResources();
     void CreateWindowSizeDependentResources();
 
+	// Handle the input
+	void InputHandler();
+
     // Device resources.
     std::unique_ptr<DX::DeviceResources>        m_deviceResources;
 
@@ -78,4 +81,5 @@ private:
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 	DirectX::SimpleMath::Vector2 m_screenPos;
 	DirectX::SimpleMath::Vector2 m_origin;
+	std::unique_ptr<DirectX::Keyboard> m_keyboard;
 };

@@ -46,7 +46,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// Init paddle pos respect windows size
 	player = Paddle(width, height);
-
+	m_keyboard = std::make_unique<Keyboard>();
 }
 
 #pragma region Frame Update
@@ -71,7 +71,7 @@ void Game::Update(DX::StepTimer const& timer)
     // TODO: Add your game logic here.
     elapsedTime;
 
-	player.MovePaddle(false);
+	InputHandler();
 
     PIXEndEvent();
 }
@@ -252,6 +252,22 @@ void Game::CreateWindowSizeDependentResources()
 	auto size = m_deviceResources->GetOutputSize();
 	m_screenPos.x = float(size.right) / 2.f;
 	m_screenPos.y = float(size.bottom) / 2.f;
+}
+
+void Game::InputHandler()
+{
+	auto kb = m_keyboard->GetState();
+	if (kb.Escape)
+	{
+		ExitGame();
+	}
+	if (kb.Right) {
+		player.MovePaddle(true);
+	}
+	if (kb.Left) {
+		player.MovePaddle(false);
+	}
+	Keyboard::ProcessMessage(0, 0, 0);
 }
 
 void Game::OnDeviceLost()
