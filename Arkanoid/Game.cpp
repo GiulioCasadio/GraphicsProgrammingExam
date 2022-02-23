@@ -43,6 +43,10 @@ void Game::Initialize(HWND window, int width, int height)
     m_timer.SetFixedTimeStep(true);
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
     */
+
+	// Init paddle pos respect windows size
+	player = Paddle(width, height);
+
 }
 
 #pragma region Frame Update
@@ -89,14 +93,16 @@ void Game::Render()
 	PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
 
 	// TODO: Add your rendering code here.
+	float time = float(m_timer.GetTotalSeconds());
+
 	ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap() };
 	commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
 
 	m_spriteBatch->Begin(commandList);
 
-	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(Descriptors::Paddle),
+	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(Descriptors::Padle),
 		GetTextureSize(m_texture.Get()),
-		m_screenPos, nullptr, Colors::White, 0.f, m_origin); 
+		player.GetPosition(), nullptr, Colors::White, 0.f, m_origin, 0.5f);
 
 	m_spriteBatch->End();
 
@@ -214,7 +220,7 @@ void Game::CreateDeviceDependentResources()
 			m_texture.ReleaseAndGetAddressOf()));
 
 	CreateShaderResourceView(device, m_texture.Get(),
-		m_resourceDescriptors->GetCpuHandle(Descriptors::Paddle));
+		m_resourceDescriptors->GetCpuHandle(Descriptors::Padle));
 
 	RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
 		m_deviceResources->GetDepthBufferFormat());

@@ -6,6 +6,7 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
+#include "Paddle.h"
 
 
 // A basic game implementation that creates a D3D12 device and
@@ -13,6 +14,8 @@
 class Game final : public DX::IDeviceNotify
 {
 public:
+
+	Paddle player;
 
     Game() noexcept(false);
     ~Game();
@@ -68,7 +71,7 @@ private:
 
 	enum Descriptors
 	{
-		Paddle,
+		Padle,
 		Count
 	};
 
