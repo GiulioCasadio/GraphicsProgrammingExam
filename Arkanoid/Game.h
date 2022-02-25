@@ -7,6 +7,7 @@
 #include "DeviceResources.h"
 #include "StepTimer.h"
 #include "Paddle.h"
+#include "Ball.h"
 
 
 // A basic game implementation that creates a D3D12 device and
@@ -16,6 +17,8 @@ class Game final : public DX::IDeviceNotify
 public:
 
 	Paddle player;
+
+	Ball ball;
 
     Game() noexcept(false);
     ~Game();
@@ -70,12 +73,19 @@ private:
     std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
 
 	std::unique_ptr<DirectX::DescriptorHeap> m_resourceDescriptors;
+	std::unique_ptr<DirectX::DescriptorHeap> m_resourceDescriptors_ball;
 	Microsoft::WRL::ComPtr<ID3D12Resource> m_texture;
 
-	enum Descriptors
+	enum PaddleDescriptors
 	{
-		Padle,
+		PaddleSprite,
 		Count
+	};
+
+	enum BallDescriptors
+	{
+		BallSprite,
+		CountBall
 	};
 
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;

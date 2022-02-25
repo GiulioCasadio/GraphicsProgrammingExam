@@ -22,6 +22,7 @@
       <Filter>Common</Filter>
     </ClInclude>
     <ClInclude Include="Paddle.h" />
+    <ClInclude Include="Ball.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -31,6 +32,7 @@
       <Filter>Common</Filter>
     </ClCompile>
     <ClCompile Include="Paddle.cpp" />
+    <ClCompile Include="Ball.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />

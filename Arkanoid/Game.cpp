@@ -46,6 +46,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// Init paddle pos respect windows size
 	player = Paddle(width, height);
+	ball = Ball(player.GetPosition());
 	m_keyboard = std::make_unique<Keyboard>();
 }
 
@@ -102,10 +103,15 @@ void Game::Render()
 
 	m_spriteBatch->Begin(commandList);
 
-	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(Descriptors::Padle),
+	// Render player
+	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(PaddleDescriptors::PaddleSprite),
 		GetTextureSize(m_texture.Get()),
 		player.GetPosition(), nullptr, Colors::White, 0.f, m_origin, 0.5f);
-
+	
+	// Render Ball
+	/*m_spriteBatch->Draw(m_resourceDescriptors_ball->GetGpuHandle(BallDescriptors::BallSprite),
+		GetTextureSize(m_texture.Get()),
+		ball.GetPosition(), nullptr, Colors::White, 0.f, m_origin, 0.5f);*/
 	m_spriteBatch->End();
 
 	PIXEndEvent(commandList);
@@ -210,9 +216,10 @@ void Game::CreateDeviceDependentResources()
     m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
 
     // TODO: Initialize device dependent objects here (independent of window size).
-	m_resourceDescriptors = std::make_unique<DescriptorHeap>(device,
-		Descriptors::Count);
+	m_resourceDescriptors = std::make_unique<DescriptorHeap>(device, PaddleDescriptors::Count);
+	m_resourceDescriptors_ball = std::make_unique<DescriptorHeap>(device, BallDescriptors::CountBall);
 
+	// Load paddle sprite 
 	ResourceUploadBatch resourceUpload(device);
 
 	resourceUpload.Begin();
@@ -222,13 +229,12 @@ void Game::CreateDeviceDependentResources()
 			m_texture.ReleaseAndGetAddressOf()));
 
 	CreateShaderResourceView(device, m_texture.Get(),
-		m_resourceDescriptors->GetCpuHandle(Descriptors::Padle));
+		m_resourceDescriptors->GetCpuHandle(PaddleDescriptors::PaddleSprite));
 
 	RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
 		m_deviceResources->GetDepthBufferFormat());
 
-	SpriteBatchPipelineStateDescription pd(rtState,
-		&CommonStates::NonPremultiplied);
+	SpriteBatchPipelineStateDescription pd(rtState, &CommonStates::NonPremultiplied);
 	m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pd);
 
 	XMUINT2 paddleSize = GetTextureSize(m_texture.Get());
@@ -240,6 +246,33 @@ void Game::CreateDeviceDependentResources()
 		m_deviceResources->GetCommandQueue());
 
 	uploadResourcesFinished.wait();
+
+	// Load ball sprite 
+	resourceUpload.Begin();
+
+	DX::ThrowIfFailed(
+		CreateWICTextureFromFile(device, resourceUpload, L"Assets/Ball.png",
+			m_texture.ReleaseAndGetAddressOf()));
+
+	CreateShaderResourceView(device, m_texture.Get(),
+		m_resourceDescriptors_ball->GetCpuHandle(BallDescriptors::BallSprite));
+
+	RenderTargetState rtStateB(m_deviceResources->GetBackBufferFormat(),
+		m_deviceResources->GetDepthBufferFormat());
+
+	SpriteBatchPipelineStateDescription pdb(rtStateB, &CommonStates::NonPremultiplied);
+	m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pdb);
+
+	XMUINT2 ballSize = GetTextureSize(m_texture.Get());
+
+	m_origin.x = float(ballSize.x / 2);
+	m_origin.y = float(ballSize.y / 2);
+	
+	auto uploadResourcesFinishedB = resourceUpload.End(
+		m_deviceResources->GetCommandQueue());
+
+	uploadResourcesFinished.wait();
+
 }
 
 // Allocate all memory resources that change on a window SizeChanged event.
