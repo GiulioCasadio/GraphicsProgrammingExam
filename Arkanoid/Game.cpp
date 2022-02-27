@@ -35,9 +35,21 @@ void Game::Initialize(HWND window, int width, int height)
     m_timer.SetTargetElapsedSeconds(1.0 / 60);
     */
 
-	// Init paddle pos respect windows size
+	// Init gameobjects position respect windows size
 	player = Paddle(width, height);
 	ball = Ball(Vector2(width, height));
+
+	int heigthSpace = 0;
+	for (int i = 0; i < BRICKSROW; i++) {
+		int widthSpace = 0;
+		for (int j = 0; j < BRICKCOLUMN; j++) {
+			bricks.push_back(Brick(Vector2(widthSpace+BRICKOFFSETWIDTH,heigthSpace+BRICKOFFSETHEIGHT)));
+			widthSpace += BRICKOFFSETWIDTH;
+		}
+		heigthSpace += BRICKOFFSETHEIGHT;
+	}
+
+	// Init input handler
 	m_keyboard = std::make_unique<Keyboard>();
 }
 
@@ -97,6 +109,23 @@ void Game::Render()
 	}
 	m_spriteBatch->Draw(textureBall.Get(), ball.GetPosition(), nullptr,
 		Colors::White, 0.f, m_origin, 0.3f);
+
+	// Render Bricks
+	int countColor = 0;
+	for (Brick b : bricks)
+	{
+		if (!b.IsDestroyed()) {
+			if (countColor % 2 == 0) {
+				m_spriteBatch->Draw(textureBrick.Get(), b.GetPosition(), nullptr,
+					Colors::Red, 0.f, m_origin, 0.3f);
+			}
+			else {
+				m_spriteBatch->Draw(textureBrick.Get(), b.GetPosition(), nullptr,
+					Colors::Blue, 0.f, m_origin, 0.3f);
+			}
+			countColor++;
+		}
+	}
 
 	m_spriteBatch->End();
 
@@ -189,6 +218,7 @@ void Game::CreateDeviceDependentResources()
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	m_spriteBatch = std::make_unique<SpriteBatch>(context);
 
+	LoadBrickTexture(device);
 	LoadPaddleTexture(device); 
 	LoadBallTexture(device);
 
@@ -286,6 +316,25 @@ void Game::LoadBallTexture(ID3D11Device1* device)
 
 	m_origin.x = float(balldesc.Width / 2);
 	m_origin.y = float(balldesc.Height / 2);
+}
+
+void Game::LoadBrickTexture(ID3D11Device1* device)
+{
+	ComPtr<ID3D11Resource> resource;
+	DX::ThrowIfFailed(
+		CreateWICTextureFromFile(device, L"Assets/Brick.png",
+			resource.GetAddressOf(),
+			textureBrick.ReleaseAndGetAddressOf()));
+
+	m_states = std::make_unique<CommonStates>(device);
+	ComPtr<ID3D11Texture2D> brick;
+	DX::ThrowIfFailed(resource.As(&brick));
+
+	CD3D11_TEXTURE2D_DESC brickdesc;
+	brick->GetDesc(&brickdesc);
+
+	m_origin.x = float(brickdesc.Width / 2);
+	m_origin.y = float(brickdesc.Height / 2);
 }
 
 #pragma endregion

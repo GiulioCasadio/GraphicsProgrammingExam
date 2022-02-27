@@ -9,7 +9,13 @@
 
 #include "Paddle.h"
 #include "Ball.h"
+#include "Brick.h"
 
+#define BRICKOFFSETWIDTH 93
+#define BRICKOFFSETHEIGHT 60
+
+#define BRICKSROW 4
+#define BRICKCOLUMN 7
 
 // A basic game implementation that creates a D3D11 device and
 // provides a game loop.
@@ -20,6 +26,8 @@ public:
 	Paddle player;
 
 	Ball ball;
+
+	vector<Brick> bricks;
 
     Game() noexcept(false);
     ~Game() = default;
@@ -54,6 +62,7 @@ public:
 	// Load Textures
 	void LoadPaddleTexture(ID3D11Device1*);
 	void LoadBallTexture(ID3D11Device1*);
+	void LoadBrickTexture(ID3D11Device1*);
 
 private:
 
@@ -76,6 +85,7 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texturePaddle;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureBall;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureBrick;
 
 	std::unique_ptr<DirectX::CommonStates> m_states;
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;

@@ -20,6 +20,7 @@
     </ClInclude>
     <ClInclude Include="Paddle.h" />
     <ClInclude Include="Ball.h" />
+    <ClInclude Include="Brick.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
@@ -30,6 +31,7 @@
     </ClCompile>
     <ClCompile Include="Paddle.cpp" />
     <ClCompile Include="Ball.cpp" />
+    <ClCompile Include="Brick.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resource.rc" />
@@ -42,6 +44,9 @@
       <Filter>Assets</Filter>
     </Image>
     <Image Include="Assets\Paddle.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Brick.png">
       <Filter>Assets</Filter>
     </Image>
   </ItemGroup>
