@@ -23,7 +23,12 @@ private:
 public:
 	Vector2 GetPosition();
 	void SetPosition(Vector2);
+	Vector2 GetScreenSize();
+
 	bool IsAttached();
+	void Attach();
+	bool IsUnderPaddle();
+
 	void DetachBall();
 	void SetDirection(int);
 

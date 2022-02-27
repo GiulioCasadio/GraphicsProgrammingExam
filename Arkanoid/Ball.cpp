@@ -19,8 +19,26 @@ void Ball::SetPosition(Vector2 v) {
 	position= Vector2(v.x + (PADDLEOFFSET), v.y - 20);
 }
 
+Vector2 Ball::GetScreenSize()
+{
+	return screenSize;
+}
+
 bool Ball::IsAttached() {
 	return controlled;
+}
+
+void Ball::Attach()
+{
+	controlled = true;
+}
+
+bool Ball::IsUnderPaddle()
+{
+	if (position.y > screenSize.y-BALLOFFSET/3) {
+		return true;
+	}
+	return false;
 }
 
 void Ball::DetachBall()

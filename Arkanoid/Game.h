@@ -29,6 +29,8 @@ public:
 
 	vector<Brick> bricks;
 
+	int bricksAlive= BRICKSROW* BRICKCOLUMN;
+
     Game() noexcept(false);
     ~Game() = default;
 
@@ -63,6 +65,11 @@ public:
 	void LoadPaddleTexture(ID3D11Device1*);
 	void LoadBallTexture(ID3D11Device1*);
 	void LoadBrickTexture(ID3D11Device1*);
+
+	// GameLogic
+	void CheckGameOver();
+	void CheckWin();
+	void Restart();
 
 private:
 

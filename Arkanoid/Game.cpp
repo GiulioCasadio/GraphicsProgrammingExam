@@ -78,6 +78,8 @@ void Game::Update(DX::StepTimer const& timer)
 	if (!ball.IsAttached()) {
 		ball.UpdatePosition(player.GetPosition().x);
 	}
+
+	CheckGameOver();
 }
 #pragma endregion
 
@@ -335,6 +337,31 @@ void Game::LoadBrickTexture(ID3D11Device1* device)
 
 	m_origin.x = float(brickdesc.Width / 2);
 	m_origin.y = float(brickdesc.Height / 2);
+}
+
+void Game::CheckGameOver()
+{
+	if (ball.IsUnderPaddle()) {
+		Restart();
+	}
+}
+
+void Game::CheckWin()
+{
+	if (bricksAlive == 0) {
+		Restart();
+	}
+}
+
+void Game::Restart()
+{
+	// Set initial player and ball position
+	player.SetPosition(Vector2(player.GetScreenSize().x/2 - (SPRITEWIDTH / 1.5f), player.GetScreenSize().y-20));
+	ball.SetPosition(player.GetPosition());
+	ball.Attach();
+
+	// Reset number of bricks and respawn them
+	bricksAlive = BRICKSROW * BRICKCOLUMN;
 }
 
 #pragma endregion
