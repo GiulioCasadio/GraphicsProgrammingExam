@@ -23,11 +23,11 @@ class Game final : public DX::IDeviceNotify
 {
 public:
 
-	Paddle player;
+	Paddle* player;
 
-	Ball ball;
+	Ball* ball;
 
-	vector<Brick> bricks;
+	vector<Brick*> bricks;
 
 	int bricksAlive= BRICKSROW* BRICKCOLUMN;
 
@@ -67,6 +67,7 @@ public:
 	void LoadBrickTexture(ID3D11Device1*);
 
 	// GameLogic
+	void CollisionCheck();
 	void CheckGameOver();
 	void CheckWin();
 	void Restart();

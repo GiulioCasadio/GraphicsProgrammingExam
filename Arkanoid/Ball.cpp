@@ -24,6 +24,11 @@ Vector2 Ball::GetScreenSize()
 	return screenSize;
 }
 
+Vector2 Ball::GetVelocity()
+{
+	return velocity;
+}
+
 bool Ball::IsAttached() {
 	return controlled;
 }
@@ -62,23 +67,36 @@ void Ball::SetDirection(int dir)
 	pitDirection = dir;
 }
 
+void Ball::SwapVelocity()
+{
+	float aux = velocity.x;
+	velocity.x = velocity.y;
+	velocity.y = aux;
+}
+
+void Ball::ChangeVerticalDir()
+{
+	velocity.y *= -1;
+}
+
+void Ball::ChangeHorizontalDir()
+{
+	velocity.x *= -1;
+}
+
 void Ball::UpdatePosition(int paddlex)
 {
 	// check height
-	if (position.y <= 0) {
-		velocity.y *= -1;
-	}
-	else if (position.y >= screenSize.y-BALLOFFSET && position.x >= paddlex-PADDLEOFFSET/3 && position.x-BALLOFFSET <= paddlex+PADDLEOFFSET*2 ) {
-		velocity.y *= -1;
+	if (position.y >= screenSize.y - BALLOFFSET && position.x >= paddlex - PADDLEOFFSET / 3 && position.x - BALLOFFSET <= paddlex + PADDLEOFFSET * 2
+		|| position.y <= 0) {
+		ChangeVerticalDir();
 	}
 
 	// check width
-	if (position.x <= 0) {
-		velocity.x *= -1;
+	if (position.x <= 0 || position.x >= screenSize.x) {
+		ChangeHorizontalDir();
 	}
-	else if (position.x >= screenSize.x) {
-		velocity.x *= -1;
-	}
+
 
 	position.x += velocity.x;
 	position.y += velocity.y;

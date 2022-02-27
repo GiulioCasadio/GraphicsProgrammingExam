@@ -18,3 +18,13 @@ bool Brick::IsDestroyed()
 {
 	return isDestroyed;
 }
+
+void Brick::Destroy()
+{
+	isDestroyed = true;
+}
+
+void Brick::Respawn()
+{
+	isDestroyed = false;
+}

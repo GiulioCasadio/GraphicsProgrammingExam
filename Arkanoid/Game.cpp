@@ -36,14 +36,14 @@ void Game::Initialize(HWND window, int width, int height)
     */
 
 	// Init gameobjects position respect windows size
-	player = Paddle(width, height);
-	ball = Ball(Vector2(width, height));
+	player = new Paddle(width, height);
+	ball = new Ball(Vector2(width, height));
 
 	int heigthSpace = 0;
 	for (int i = 0; i < BRICKSROW; i++) {
 		int widthSpace = 0;
 		for (int j = 0; j < BRICKCOLUMN; j++) {
-			bricks.push_back(Brick(Vector2(widthSpace+BRICKOFFSETWIDTH,heigthSpace+BRICKOFFSETHEIGHT)));
+			bricks.push_back(new Brick(Vector2(widthSpace+BRICKOFFSETWIDTH,heigthSpace+BRICKOFFSETHEIGHT)));
 			widthSpace += BRICKOFFSETWIDTH;
 		}
 		heigthSpace += BRICKOFFSETHEIGHT;
@@ -75,11 +75,13 @@ void Game::Update(DX::StepTimer const& timer)
 
 	InputHandler();
 
-	if (!ball.IsAttached()) {
-		ball.UpdatePosition(player.GetPosition().x);
+	if (!ball->IsAttached()) {
+		ball->UpdatePosition(player->GetPosition().x);
 	}
 
+	CollisionCheck();
 	CheckGameOver();
+	CheckWin();
 }
 #pragma endregion
 
@@ -102,31 +104,31 @@ void Game::Render()
 	m_spriteBatch->Begin(SpriteSortMode_Deferred, m_states->NonPremultiplied());
 
 	// Render paddle
-	m_spriteBatch->Draw(texturePaddle.Get(), player.GetPosition(), nullptr,
+	m_spriteBatch->Draw(texturePaddle.Get(), player->GetPosition(), nullptr,
 		Colors::White, 0.f, m_origin, 0.5f);
 
 	// Render ball
-	if (ball.IsAttached()) {
-		ball.SetPosition(player.GetPosition());
+	if (ball->IsAttached()) {
+		ball->SetPosition(player->GetPosition());
 	}
-	m_spriteBatch->Draw(textureBall.Get(), ball.GetPosition(), nullptr,
+	m_spriteBatch->Draw(textureBall.Get(), ball->GetPosition(), nullptr,
 		Colors::White, 0.f, m_origin, 0.3f);
 
 	// Render Bricks
 	int countColor = 0;
-	for (Brick b : bricks)
+	for (Brick* b : bricks)
 	{
-		if (!b.IsDestroyed()) {
+		if (!b->IsDestroyed()) {
 			if (countColor % 2 == 0) {
-				m_spriteBatch->Draw(textureBrick.Get(), b.GetPosition(), nullptr,
+				m_spriteBatch->Draw(textureBrick.Get(), b->GetPosition(), nullptr,
 					Colors::Red, 0.f, m_origin, 0.3f);
 			}
 			else {
-				m_spriteBatch->Draw(textureBrick.Get(), b.GetPosition(), nullptr,
+				m_spriteBatch->Draw(textureBrick.Get(), b->GetPosition(), nullptr,
 					Colors::Blue, 0.f, m_origin, 0.3f);
 			}
-			countColor++;
 		}
+		countColor++;
 	}
 
 	m_spriteBatch->End();
@@ -264,19 +266,19 @@ void Game::InputHandler()
 		ExitGame();
 	}
 	if (kb.Space) {
-		ball.DetachBall();
+		ball->DetachBall();
 	}
 
 	if (kb.Right) {
-		player.MovePaddle(true);
-		ball.SetDirection(1);
+		player->MovePaddle(true);
+		ball->SetDirection(1);
 	}
 	else if (kb.Left) {
-		player.MovePaddle(false);
-		ball.SetDirection(-1);
+		player->MovePaddle(false);
+		ball->SetDirection(-1);
 	}
 	else {
-		ball.SetDirection(0);
+		ball->SetDirection(0);
 	}
 	
 	Keyboard::ProcessMessage(0, 0, 0);
@@ -339,16 +341,37 @@ void Game::LoadBrickTexture(ID3D11Device1* device)
 	m_origin.y = float(brickdesc.Height / 2);
 }
 
+void Game::CollisionCheck()
+{
+	for (Brick* b : bricks)
+	{
+		if (!b->IsDestroyed() &&
+				(b->GetPosition().y+BRICKSPRITEHEIGHTOFFSET > ball->GetPosition().y && b->GetPosition().y - BRICKSPRITEHEIGHTOFFSET < ball->GetPosition().y &&
+					b->GetPosition().x + BRICKSPRITEWIDTHOFFSET > ball->GetPosition().x && b->GetPosition().x-BRICKSPRITEWIDTHOFFSET/4 < ball->GetPosition().x)
+			) {
+			b->Destroy();
+			bricksAlive--;
+
+			//FIX HERE La direzione di rimbalzo non e' corretta
+			ball->ChangeVerticalDir();
+
+			if (ball->GetVelocity().y < ball->GetVelocity().x) {
+				ball->ChangeHorizontalDir();
+			}
+		}
+	}
+}
+
 void Game::CheckGameOver()
 {
-	if (ball.IsUnderPaddle()) {
+	if (ball->IsUnderPaddle()) {
 		Restart();
 	}
 }
 
 void Game::CheckWin()
 {
-	if (bricksAlive == 0) {
+	if (bricksAlive <= 0) {
 		Restart();
 	}
 }
@@ -356,12 +379,17 @@ void Game::CheckWin()
 void Game::Restart()
 {
 	// Set initial player and ball position
-	player.SetPosition(Vector2(player.GetScreenSize().x/2 - (SPRITEWIDTH / 1.5f), player.GetScreenSize().y-20));
-	ball.SetPosition(player.GetPosition());
-	ball.Attach();
+	player->SetPosition(Vector2(player->GetScreenSize().x/2 - (SPRITEWIDTH / 1.5f), player->GetScreenSize().y-20));
+	ball->SetPosition(player->GetPosition());
+	ball->Attach();
 
 	// Reset number of bricks and respawn them
 	bricksAlive = BRICKSROW * BRICKCOLUMN;
+
+	for (Brick* b : bricks)
+	{
+		b->Respawn();
+	}
 }
 
 #pragma endregion
