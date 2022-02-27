@@ -4,10 +4,31 @@
 //
 
 #pragma once
+//tool kit dx11
+#include "Audio.h"
+#include "BufferHelpers.h"
+#include "CommonStates.h"
+#include "DDSTextureLoader.h"
+#include "DirectXHelpers.h"
+#include "Effects.h"
+#include "GamePad.h"
+#include "GeometricPrimitive.h"
+#include "GraphicsMemory.h"
+#include "Keyboard.h"
+#include "Model.h"
+#include "Mouse.h"
+#include "PostProcess.h"
+#include "PrimitiveBatch.h"
+#include "ScreenGrab.h"
+#include "SimpleMath.h"
+#include "SpriteBatch.h"
+#include "SpriteFont.h"
+#include "VertexTypes.h"
+#include "WICTextureLoader.h"
 
 #include <winsdkver.h>
 #ifndef _WIN32_WINNT
-#define _WIN32_WINNT 0x0A00
+#define _WIN32_WINNT 0x0601
 #endif
 #include <sdkddkver.h>
 
@@ -32,61 +53,22 @@
 #include <Windows.h>
 
 #include <wrl/client.h>
-#include <wrl/event.h>
 
-#ifdef USING_DIRECTX_HEADERS
-#include <directx/dxgiformat.h>
-#include <directx/d3d12.h>
-#else
-#include <d3d12.h>
-#endif
-
+#include <d3d11_1.h>
 #include <dxgi1_6.h>
 
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
-#include "d3dx12.h"
-
 #include <algorithm>
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <cwchar>
 #include <exception>
 #include <iterator>
 #include <memory>
 #include <stdexcept>
-#include <system_error>
-#include "BufferHelpers.h"
-#include "CommonStates.h"
-#include "DDSTextureLoader.h"
-#include "DescriptorHeap.h"
-#include "DirectXHelpers.h"
-#include "EffectPipelineStateDescription.h"
-#include "Effects.h"
-#include "GamePad.h"
-#include "GeometricPrimitive.h"
-#include "GraphicsMemory.h"
-#include "Keyboard.h"
-#include "Model.h"
-#include "Mouse.h"
-#include "PostProcess.h"
-#include "PrimitiveBatch.h"
-#include "RenderTargetState.h"
-#include "ResourceUploadBatch.h"
-#include "ScreenGrab.h"
-#include "SimpleMath.h"
-#include "SpriteBatch.h"
-#include "SpriteFont.h"
-#include "VertexTypes.h"
-#include "WICTextureLoader.h"
-
-// To use graphics and CPU markup events with the latest version of PIX, change this to include <pix3.h>
-// then add the NuGet package WinPixEventRuntime to the project.
-#include <pix.h>
 
 #ifdef _DEBUG
 #include <dxgidebug.h>

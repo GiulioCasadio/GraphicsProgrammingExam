@@ -2,12 +2,12 @@
 #include "Paddle.h"
 
 
-Paddle::Paddle(){}
+Paddle::Paddle() {}
 
 Paddle::Paddle(int w, int h)
 {
 	screenWidth = w;
-	position = Vector2( w / 2, h - 20);
+	position = Vector2(w / 2, h - 20);
 }
 
 Vector2 Paddle::GetPosition() {
@@ -16,7 +16,7 @@ Vector2 Paddle::GetPosition() {
 
 void Paddle::MovePaddle(bool dir)
 {
-	if (dir && position.x + SPRITEWIDTH <screenWidth) {
+	if (dir && position.x + SPRITEWIDTH < screenWidth) {
 		position.x++;
 	}
 	else if (!dir && position.x > SPRITEWIDTH) {

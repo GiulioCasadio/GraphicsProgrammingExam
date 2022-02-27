@@ -14,15 +14,6 @@ using namespace DirectX;
 
 #pragma warning(disable : 4061)
 
-#ifdef USING_D3D12_AGILITY_SDK
-extern "C"
-{
-    // Used to enable the "Agility SDK" components
-    __declspec(dllexport) extern const UINT D3D12SDKVersion = D3D12_SDK_VERSION;
-    __declspec(dllexport) extern const char* D3D12SDKPath = u8".\\D3D12\\";
-}
-#endif
-
 namespace
 {
     std::unique_ptr<Game> g_game;
@@ -33,6 +24,13 @@ LPCWSTR g_szAppName = L"Arkanoid";
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 void ExitGame() noexcept;
 
+// Indicates to hybrid graphics systems to prefer the discrete part by default
+extern "C"
+{
+    __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+    __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
+}
+
 // Entry point
 int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPWSTR lpCmdLine, _In_ int nCmdShow)
 {
@@ -42,8 +40,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     if (!XMVerifyCPUSupport())
         return 1;
 
-    Microsoft::WRL::Wrappers::RoInitializeWrapper initialize(RO_INIT_MULTITHREADED);
-    if (FAILED(initialize))
+    HRESULT hr = CoInitializeEx(nullptr, COINITBASE_MULTITHREADED);
+    if (FAILED(hr))
         return 1;
 
     g_game = std::make_unique<Game>();
@@ -59,7 +57,7 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
         wcex.hIcon = LoadIconW(hInstance, L"IDI_ICON");
         wcex.hCursor = LoadCursorW(nullptr, IDC_ARROW);
         wcex.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
-        wcex.lpszClassName = L"ArkanoidWindowClass";
+        wcex.lpszClassName = L"Direct3D_Win32_Game4WindowClass";
         wcex.hIconSm = LoadIconW(wcex.hInstance, L"IDI_ICON");
         if (!RegisterClassExW(&wcex))
             return 1;
@@ -72,10 +70,10 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 
         AdjustWindowRect(&rc, WS_OVERLAPPEDWINDOW, FALSE);
 
-        HWND hwnd = CreateWindowExW(0, L"ArkanoidWindowClass", g_szAppName, WS_OVERLAPPEDWINDOW,
+        HWND hwnd = CreateWindowExW(0, L"Direct3D_Win32_Game4WindowClass", g_szAppName, WS_OVERLAPPEDWINDOW,
             CW_USEDEFAULT, CW_USEDEFAULT, rc.right - rc.left, rc.bottom - rc.top, nullptr, nullptr, hInstance,
             nullptr);
-        // TODO: Change to CreateWindowExW(WS_EX_TOPMOST, L"ArkanoidWindowClass", g_szAppName, WS_POPUP,
+        // TODO: Change to CreateWindowExW(WS_EX_TOPMOST, L"Direct3D_Win32_Game4WindowClass", g_szAppName, WS_POPUP,
         // to default to fullscreen.
 
         if (!hwnd)
@@ -107,6 +105,8 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
     }
 
     g_game.reset();
+
+    CoUninitialize();
 
     return static_cast<int>(msg.wParam);
 }
@@ -204,9 +204,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 game->OnDeactivated();
             }
         }
-
 		Keyboard::ProcessMessage(message, wParam, lParam);
-		break;
+        break;
 
     case WM_POWERBROADCAST:
         switch (wParam)
@@ -228,9 +227,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-    case WM_DESTROY:
-        PostQuitMessage(0);
-        break;
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		break;
 
 	case WM_KEYDOWN:
 	case WM_KEYUP:
@@ -239,7 +238,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
     case WM_SYSKEYDOWN:
-		Keyboard::ProcessMessage(message, wParam, lParam);
         if (wParam == VK_RETURN && (lParam & 0x60000000) == 0x20000000)
         {
             // Implements the classic ALT+ENTER fullscreen toggle

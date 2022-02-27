@@ -8,7 +8,6 @@
 extern void ExitGame() noexcept;
 
 using namespace DirectX;
-using namespace DirectX::SimpleMath;
 
 using Microsoft::WRL::ComPtr;
 
@@ -16,14 +15,6 @@ Game::Game() noexcept(false)
 {
     m_deviceResources = std::make_unique<DX::DeviceResources>();
     m_deviceResources->RegisterDeviceNotify(this);
-}
-
-Game::~Game()
-{
-    if (m_deviceResources)
-    {
-        m_deviceResources->WaitForGpu();
-    }
 }
 
 // Initialize the Direct3D resources required to run.
@@ -46,7 +37,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// Init paddle pos respect windows size
 	player = Paddle(width, height);
-	ball = Ball(player.GetPosition());
+	//ball = Ball(player.GetPosition());
 	m_keyboard = std::make_unique<Keyboard>();
 }
 
@@ -65,8 +56,6 @@ void Game::Tick()
 // Updates the world.
 void Game::Update(DX::StepTimer const& timer)
 {
-    PIXBeginEvent(PIX_COLOR_DEFAULT, L"Update");
-
     float elapsedTime = float(timer.GetElapsedSeconds());
 
     // TODO: Add your game logic here.
@@ -74,7 +63,6 @@ void Game::Update(DX::StepTimer const& timer)
 
 	InputHandler();
 
-    PIXEndEvent();
 }
 #pragma endregion
 
@@ -82,67 +70,52 @@ void Game::Update(DX::StepTimer const& timer)
 // Draws the scene.
 void Game::Render()
 {
-	// Don't try to render anything before the first Update.
-	if (m_timer.GetFrameCount() == 0)
-	{
-		return;
-	}
+    // Don't try to render anything before the first Update.
+    if (m_timer.GetFrameCount() == 0)
+    {
+        return;
+    }
 
-	// Prepare the command list to render a new frame.
-	m_deviceResources->Prepare();
-	Clear();
+    Clear();
 
-	auto commandList = m_deviceResources->GetCommandList();
-	PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Render");
+    m_deviceResources->PIXBeginEvent(L"Render");
+    auto context = m_deviceResources->GetD3DDeviceContext();
 
-	// TODO: Add your rendering code here.
-	float time = float(m_timer.GetTotalSeconds());
+    // TODO: Add your rendering code here.
+	m_spriteBatch->Begin(SpriteSortMode_Deferred, m_states->NonPremultiplied());
 
-	ID3D12DescriptorHeap* heaps[] = { m_resourceDescriptors->Heap() };
-	commandList->SetDescriptorHeaps(static_cast<UINT>(std::size(heaps)), heaps);
+	m_spriteBatch->Draw(texturePaddle.Get(), player.GetPosition(), nullptr,
+		Colors::White, 0.f, m_origin, 0.5f);
 
-	m_spriteBatch->Begin(commandList);
-
-	// Render player
-	m_spriteBatch->Draw(m_resourceDescriptors->GetGpuHandle(PaddleDescriptors::PaddleSprite),
-		GetTextureSize(m_texture.Get()),
-		player.GetPosition(), nullptr, Colors::White, 0.f, m_origin, 0.5f);
-	
-	// Render Ball
-	/*m_spriteBatch->Draw(m_resourceDescriptors_ball->GetGpuHandle(BallDescriptors::BallSprite),
-		GetTextureSize(m_texture.Get()),
-		ball.GetPosition(), nullptr, Colors::White, 0.f, m_origin, 0.5f);*/
 	m_spriteBatch->End();
 
-	PIXEndEvent(commandList);
+    context;
 
-	// Show the new frame.
-	PIXBeginEvent(m_deviceResources->GetCommandQueue(), PIX_COLOR_DEFAULT, L"Present");
-	m_deviceResources->Present();
-	PIXEndEvent(m_deviceResources->GetCommandQueue());
+    m_deviceResources->PIXEndEvent();
+
+    // Show the new frame.
+    m_deviceResources->Present();
 }
 
 // Helper method to clear the back buffers.
 void Game::Clear()
 {
-    auto commandList = m_deviceResources->GetCommandList();
-    PIXBeginEvent(commandList, PIX_COLOR_DEFAULT, L"Clear");
+    m_deviceResources->PIXBeginEvent(L"Clear");
 
     // Clear the views.
-    auto rtvDescriptor = m_deviceResources->GetRenderTargetView();
-    auto dsvDescriptor = m_deviceResources->GetDepthStencilView();
+    auto context = m_deviceResources->GetD3DDeviceContext();
+    auto renderTarget = m_deviceResources->GetRenderTargetView();
+    auto depthStencil = m_deviceResources->GetDepthStencilView();
 
-    commandList->OMSetRenderTargets(1, &rtvDescriptor, FALSE, &dsvDescriptor);
-    commandList->ClearRenderTargetView(rtvDescriptor, Colors::CornflowerBlue, 0, nullptr);
-    commandList->ClearDepthStencilView(dsvDescriptor, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+    context->ClearRenderTargetView(renderTarget, Colors::DarkSeaGreen);
+    context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+    context->OMSetRenderTargets(1, &renderTarget, depthStencil);
 
-    // Set the viewport and scissor rect.
+    // Set the viewport.
     auto viewport = m_deviceResources->GetScreenViewport();
-    auto scissorRect = m_deviceResources->GetScissorRect();
-    commandList->RSSetViewports(1, &viewport);
-    commandList->RSSetScissorRects(1, &scissorRect);
+    context->RSSetViewports(1, &viewport);
 
-    PIXEndEvent(commandList);
+    m_deviceResources->PIXEndEvent();
 }
 #pragma endregion
 
@@ -201,77 +174,27 @@ void Game::CreateDeviceDependentResources()
 {
     auto device = m_deviceResources->GetD3DDevice();
 
-    // Check Shader Model 6 support
-    D3D12_FEATURE_DATA_SHADER_MODEL shaderModel = { D3D_SHADER_MODEL_6_0 };
-    if (FAILED(device->CheckFeatureSupport(D3D12_FEATURE_SHADER_MODEL, &shaderModel, sizeof(shaderModel)))
-        || (shaderModel.HighestShaderModel < D3D_SHADER_MODEL_6_0))
-    {
-#ifdef _DEBUG
-        OutputDebugStringA("ERROR: Shader Model 6.0 is not supported!\n");
-#endif
-        throw std::runtime_error("Shader Model 6.0 is not supported!");
-    }
-
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    m_graphicsMemory = std::make_unique<GraphicsMemory>(device);
-
     // TODO: Initialize device dependent objects here (independent of window size).
-	m_resourceDescriptors = std::make_unique<DescriptorHeap>(device, PaddleDescriptors::Count);
-	m_resourceDescriptors_ball = std::make_unique<DescriptorHeap>(device, BallDescriptors::CountBall);
+	auto context = m_deviceResources->GetD3DDeviceContext();
+	m_spriteBatch = std::make_unique<SpriteBatch>(context);
 
-	// Load paddle sprite 
-	ResourceUploadBatch resourceUpload(device);
-
-	resourceUpload.Begin();
-
+	ComPtr<ID3D11Resource> resource;
 	DX::ThrowIfFailed(
-		CreateWICTextureFromFile(device, resourceUpload, L"Assets/Paddle.png",
-			m_texture.ReleaseAndGetAddressOf()));
+		CreateWICTextureFromFile(device, L"Assets/Paddle.png",
+			resource.GetAddressOf(),
+			texturePaddle.ReleaseAndGetAddressOf()));
 
-	CreateShaderResourceView(device, m_texture.Get(),
-		m_resourceDescriptors->GetCpuHandle(PaddleDescriptors::PaddleSprite));
+	m_states = std::make_unique<CommonStates>(device);
+	ComPtr<ID3D11Texture2D> paddle;
+	DX::ThrowIfFailed(resource.As(&paddle));
 
-	RenderTargetState rtState(m_deviceResources->GetBackBufferFormat(),
-		m_deviceResources->GetDepthBufferFormat());
+	CD3D11_TEXTURE2D_DESC paddledesc;
+	paddle->GetDesc(&paddledesc);
 
-	SpriteBatchPipelineStateDescription pd(rtState, &CommonStates::NonPremultiplied);
-	m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pd);
+	m_origin.x = float(paddledesc.Width / 2);
+	m_origin.y = float(paddledesc.Height / 2); 
 
-	XMUINT2 paddleSize = GetTextureSize(m_texture.Get());
-
-	m_origin.x = float(paddleSize.x / 2);
-	m_origin.y = float(paddleSize.y / 2);
-
-	auto uploadResourcesFinished = resourceUpload.End(
-		m_deviceResources->GetCommandQueue());
-
-	uploadResourcesFinished.wait();
-
-	// Load ball sprite 
-	resourceUpload.Begin();
-
-	DX::ThrowIfFailed(
-		CreateWICTextureFromFile(device, resourceUpload, L"Assets/Ball.png",
-			m_texture.ReleaseAndGetAddressOf()));
-
-	CreateShaderResourceView(device, m_texture.Get(),
-		m_resourceDescriptors_ball->GetCpuHandle(BallDescriptors::BallSprite));
-
-	RenderTargetState rtStateB(m_deviceResources->GetBackBufferFormat(),
-		m_deviceResources->GetDepthBufferFormat());
-
-	SpriteBatchPipelineStateDescription pdb(rtStateB, &CommonStates::NonPremultiplied);
-	m_spriteBatch = std::make_unique<SpriteBatch>(device, resourceUpload, pdb);
-
-	XMUINT2 ballSize = GetTextureSize(m_texture.Get());
-
-	m_origin.x = float(ballSize.x / 2);
-	m_origin.y = float(ballSize.y / 2);
-	
-	auto uploadResourcesFinishedB = resourceUpload.End(
-		m_deviceResources->GetCommandQueue());
-
-	uploadResourcesFinished.wait();
+	device;
 
 }
 
@@ -279,12 +202,25 @@ void Game::CreateDeviceDependentResources()
 void Game::CreateWindowSizeDependentResources()
 {
     // TODO: Initialize windows-size dependent objects here.
-	auto viewport = m_deviceResources->GetScreenViewport();
-	m_spriteBatch->SetViewport(viewport);
-
 	auto size = m_deviceResources->GetOutputSize();
 	m_screenPos.x = float(size.right) / 2.f;
 	m_screenPos.y = float(size.bottom) / 2.f;
+}
+
+void Game::OnDeviceLost()
+{
+    // TODO: Add Direct3D resource cleanup here.
+	texturePaddle.Reset();
+
+	m_spriteBatch.reset();
+	m_states.reset();
+}
+
+void Game::OnDeviceRestored()
+{
+    CreateDeviceDependentResources();
+
+    CreateWindowSizeDependentResources();
 }
 
 void Game::InputHandler()
@@ -303,22 +239,4 @@ void Game::InputHandler()
 	Keyboard::ProcessMessage(0, 0, 0);
 }
 
-void Game::OnDeviceLost()
-{
-    // TODO: Add Direct3D resource cleanup here.
-
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    m_graphicsMemory.reset();
-
-	m_texture.Reset();
-	m_resourceDescriptors.reset();
-	m_spriteBatch.reset();
-}
-
-void Game::OnDeviceRestored()
-{
-    CreateDeviceDependentResources();
-
-    CreateWindowSizeDependentResources();
-}
 #pragma endregion

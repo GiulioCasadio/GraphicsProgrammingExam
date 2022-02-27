@@ -6,11 +6,12 @@
 
 #include "DeviceResources.h"
 #include "StepTimer.h"
+
 #include "Paddle.h"
 #include "Ball.h"
 
 
-// A basic game implementation that creates a D3D12 device and
+// A basic game implementation that creates a D3D11 device and
 // provides a game loop.
 class Game final : public DX::IDeviceNotify
 {
@@ -21,7 +22,7 @@ public:
 	Ball ball;
 
     Game() noexcept(false);
-    ~Game();
+    ~Game() = default;
 
     Game(Game&&) = default;
     Game& operator= (Game&&) = default;
@@ -64,32 +65,17 @@ private:
 	void InputHandler();
 
     // Device resources.
-    std::unique_ptr<DX::DeviceResources>        m_deviceResources;
+    std::unique_ptr<DX::DeviceResources>    m_deviceResources;
 
     // Rendering loop timer.
-    DX::StepTimer                               m_timer;
+    DX::StepTimer                           m_timer;
 
-    // If using the DirectX Tool Kit for DX12, uncomment this line:
-    std::unique_ptr<DirectX::GraphicsMemory> m_graphicsMemory;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texturePaddle;
 
-	std::unique_ptr<DirectX::DescriptorHeap> m_resourceDescriptors;
-	std::unique_ptr<DirectX::DescriptorHeap> m_resourceDescriptors_ball;
-	Microsoft::WRL::ComPtr<ID3D12Resource> m_texture;
-
-	enum PaddleDescriptors
-	{
-		PaddleSprite,
-		Count
-	};
-
-	enum BallDescriptors
-	{
-		BallSprite,
-		CountBall
-	};
-
+	std::unique_ptr<DirectX::CommonStates> m_states;
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
 	DirectX::SimpleMath::Vector2 m_screenPos;
 	DirectX::SimpleMath::Vector2 m_origin;
+
 	std::unique_ptr<DirectX::Keyboard> m_keyboard;
 };
