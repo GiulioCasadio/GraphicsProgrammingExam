@@ -84,9 +84,14 @@ void Game::Render()
     // TODO: Add your rendering code here.
 	m_spriteBatch->Begin(SpriteSortMode_Deferred, m_states->NonPremultiplied());
 
+	// Render paddle
 	m_spriteBatch->Draw(texturePaddle.Get(), player.GetPosition(), nullptr,
 		Colors::White, 0.f, m_origin, 0.5f);
 
+	// Render ball
+	if (ball.IsAttached()) {
+		ball.SetPosition(player.GetPosition());
+	}
 	m_spriteBatch->Draw(textureBall.Get(), ball.GetPosition(), nullptr,
 		Colors::White, 0.f, m_origin, 0.3f);
 
@@ -110,7 +115,7 @@ void Game::Clear()
     auto renderTarget = m_deviceResources->GetRenderTargetView();
     auto depthStencil = m_deviceResources->GetDepthStencilView();
 
-    context->ClearRenderTargetView(renderTarget, Colors::DarkSeaGreen);
+    context->ClearRenderTargetView(renderTarget, Colors::AliceBlue);
     context->ClearDepthStencilView(depthStencil, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
     context->OMSetRenderTargets(1, &renderTarget, depthStencil);
 
@@ -228,6 +233,9 @@ void Game::InputHandler()
 	}
 	if (kb.Left) {
 		player.MovePaddle(false);
+	}
+	if (kb.Space) {
+		ball.DetachBall();
 	}
 	Keyboard::ProcessMessage(0, 0, 0);
 }

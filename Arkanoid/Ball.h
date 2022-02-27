@@ -12,8 +12,12 @@ public:
 private:
 	// Paddle position
 	Vector2 position;
+	bool controlled;
 
 public:
 	Vector2 GetPosition();
+	void SetPosition(Vector2);
+	bool IsAttached();
+	void DetachBall();
 };
 
