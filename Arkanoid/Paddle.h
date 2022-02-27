@@ -1,5 +1,6 @@
 #pragma once
 #define SPRITEWIDTH 64
+#define BORDEROFFSET 78
 
 using namespace DirectX::SimpleMath;
 using namespace std;

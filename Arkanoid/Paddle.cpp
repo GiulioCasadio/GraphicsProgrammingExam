@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Paddle.h"
 
+#define PADDLESPEED 1.5f
 
 Paddle::Paddle() {}
 
@@ -16,11 +17,11 @@ Vector2 Paddle::GetPosition() {
 
 void Paddle::MovePaddle(bool dir)
 {
-	if (dir && position.x + SPRITEWIDTH < screenWidth) {
-		position.x++;
+	if (dir && position.x+BORDEROFFSET+SPRITEWIDTH/1.5f < screenWidth) {
+		position.x+= PADDLESPEED;
 	}
-	else if (!dir && position.x > SPRITEWIDTH) {
-		position.x--;
+	else if (!dir && position.x > BORDEROFFSET-SPRITEWIDTH) {
+		position.x-= PADDLESPEED;
 	}
 }
 

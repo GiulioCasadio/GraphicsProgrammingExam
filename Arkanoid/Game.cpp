@@ -37,7 +37,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// Init paddle pos respect windows size
 	player = Paddle(width, height);
-	ball = Ball(player.GetPosition());
+	ball = Ball(Vector2(width, height));
 	m_keyboard = std::make_unique<Keyboard>();
 }
 
@@ -63,6 +63,9 @@ void Game::Update(DX::StepTimer const& timer)
 
 	InputHandler();
 
+	if (!ball.IsAttached()) {
+		ball.UpdatePosition(player.GetPosition().x);
+	}
 }
 #pragma endregion
 
@@ -228,15 +231,22 @@ void Game::InputHandler()
 	{
 		ExitGame();
 	}
-	if (kb.Right) {
-		player.MovePaddle(true);
-	}
-	if (kb.Left) {
-		player.MovePaddle(false);
-	}
 	if (kb.Space) {
 		ball.DetachBall();
 	}
+
+	if (kb.Right) {
+		player.MovePaddle(true);
+		ball.SetDirection(1);
+	}
+	else if (kb.Left) {
+		player.MovePaddle(false);
+		ball.SetDirection(-1);
+	}
+	else {
+		ball.SetDirection(0);
+	}
+	
 	Keyboard::ProcessMessage(0, 0, 0);
 }
 
