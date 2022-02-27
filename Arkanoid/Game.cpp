@@ -37,7 +37,7 @@ void Game::Initialize(HWND window, int width, int height)
 
 	// Init paddle pos respect windows size
 	player = Paddle(width, height);
-	//ball = Ball(player.GetPosition());
+	ball = Ball(player.GetPosition());
 	m_keyboard = std::make_unique<Keyboard>();
 }
 
@@ -86,6 +86,9 @@ void Game::Render()
 
 	m_spriteBatch->Draw(texturePaddle.Get(), player.GetPosition(), nullptr,
 		Colors::White, 0.f, m_origin, 0.5f);
+
+	m_spriteBatch->Draw(textureBall.Get(), ball.GetPosition(), nullptr,
+		Colors::White, 0.f, m_origin, 0.3f);
 
 	m_spriteBatch->End();
 
@@ -172,27 +175,14 @@ void Game::GetDefaultSize(int& width, int& height) const noexcept
 // These are the resources that depend on the device.
 void Game::CreateDeviceDependentResources()
 {
-    auto device = m_deviceResources->GetD3DDevice();
-
+	ID3D11Device1* device = m_deviceResources->GetD3DDevice();
+	
     // TODO: Initialize device dependent objects here (independent of window size).
 	auto context = m_deviceResources->GetD3DDeviceContext();
 	m_spriteBatch = std::make_unique<SpriteBatch>(context);
 
-	ComPtr<ID3D11Resource> resource;
-	DX::ThrowIfFailed(
-		CreateWICTextureFromFile(device, L"Assets/Paddle.png",
-			resource.GetAddressOf(),
-			texturePaddle.ReleaseAndGetAddressOf()));
-
-	m_states = std::make_unique<CommonStates>(device);
-	ComPtr<ID3D11Texture2D> paddle;
-	DX::ThrowIfFailed(resource.As(&paddle));
-
-	CD3D11_TEXTURE2D_DESC paddledesc;
-	paddle->GetDesc(&paddledesc);
-
-	m_origin.x = float(paddledesc.Width / 2);
-	m_origin.y = float(paddledesc.Height / 2); 
+	LoadPaddleTexture(device); 
+	LoadBallTexture(device);
 
 	device;
 
@@ -223,6 +213,9 @@ void Game::OnDeviceRestored()
     CreateWindowSizeDependentResources();
 }
 
+#pragma endregion
+
+#pragma region
 void Game::InputHandler()
 {
 	auto kb = m_keyboard->GetState();
@@ -237,6 +230,44 @@ void Game::InputHandler()
 		player.MovePaddle(false);
 	}
 	Keyboard::ProcessMessage(0, 0, 0);
+}
+
+void Game::LoadPaddleTexture(ID3D11Device1* device)
+{
+	ComPtr<ID3D11Resource> resource;
+	DX::ThrowIfFailed(
+		CreateWICTextureFromFile(device, L"Assets/Paddle.png",
+			resource.GetAddressOf(),
+			texturePaddle.ReleaseAndGetAddressOf()));
+
+	m_states = std::make_unique<CommonStates>(device);
+	ComPtr<ID3D11Texture2D> paddle;
+	DX::ThrowIfFailed(resource.As(&paddle));
+
+	CD3D11_TEXTURE2D_DESC paddledesc;
+	paddle->GetDesc(&paddledesc);
+
+	m_origin.x = float(paddledesc.Width / 2);
+	m_origin.y = float(paddledesc.Height / 2);
+}
+
+void Game::LoadBallTexture(ID3D11Device1* device)
+{
+	ComPtr<ID3D11Resource> resource;
+	DX::ThrowIfFailed(
+		CreateWICTextureFromFile(device, L"Assets/Ball.png",
+			resource.GetAddressOf(),
+			textureBall.ReleaseAndGetAddressOf()));
+
+	m_states = std::make_unique<CommonStates>(device);
+	ComPtr<ID3D11Texture2D> ball;
+	DX::ThrowIfFailed(resource.As(&ball));
+
+	CD3D11_TEXTURE2D_DESC balldesc;
+	ball->GetDesc(&balldesc);
+
+	m_origin.x = float(balldesc.Width / 2);
+	m_origin.y = float(balldesc.Height / 2);
 }
 
 #pragma endregion

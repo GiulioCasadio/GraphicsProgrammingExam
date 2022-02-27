@@ -1,4 +1,5 @@
 #pragma once
+#define PADDLEOFFSET 50
 
 using namespace DirectX::SimpleMath;
 using namespace std;

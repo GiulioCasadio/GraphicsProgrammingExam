@@ -7,7 +7,7 @@ Paddle::Paddle() {}
 Paddle::Paddle(int w, int h)
 {
 	screenWidth = w;
-	position = Vector2(w / 2, h - 20);
+	position = Vector2((w / 2)-(SPRITEWIDTH/2), h - 20);
 }
 
 Vector2 Paddle::GetPosition() {

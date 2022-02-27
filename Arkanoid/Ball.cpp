@@ -5,7 +5,7 @@ Ball::Ball() {}
 
 Ball::Ball(Vector2 paddlePos)
 {
-	position = Vector2(paddlePos.x, paddlePos.y - 30);
+	position = Vector2(paddlePos.x+(PADDLEOFFSET), paddlePos.y - 24);
 }
 
 Vector2 Ball::GetPosition() {

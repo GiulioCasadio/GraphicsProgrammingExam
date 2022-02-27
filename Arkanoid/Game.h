@@ -51,6 +51,10 @@ public:
     // Properties
     void GetDefaultSize( int& width, int& height ) const noexcept;
 
+	// Load Textures
+	void LoadPaddleTexture(ID3D11Device1*);
+	void LoadBallTexture(ID3D11Device1*);
+
 private:
 
     void Update(DX::StepTimer const& timer);
@@ -71,6 +75,7 @@ private:
     DX::StepTimer                           m_timer;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> texturePaddle;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> textureBall;
 
 	std::unique_ptr<DirectX::CommonStates> m_states;
 	std::unique_ptr<DirectX::SpriteBatch> m_spriteBatch;
