@@ -343,25 +343,23 @@ void Game::LoadBrickTexture(ID3D11Device1* device)
 
 void Game::CollisionCheck()
 {
+	Vector2 ballTempPos = ball->GetPosition();
 	for (Brick* b : bricks)
 	{
+		Vector2 brickTempPos = b->GetPosition();
 		if (!b->IsDestroyed() &&
-				(b->GetPosition().y+BRICKSPRITEHEIGHTOFFSET > ball->GetPosition().y && b->GetPosition().y - BRICKSPRITEHEIGHTOFFSET < ball->GetPosition().y &&
-					b->GetPosition().x + BRICKSPRITEWIDTHOFFSET > ball->GetPosition().x && b->GetPosition().x-BRICKSPRITEWIDTHOFFSET/4 < ball->GetPosition().x)
+				(brickTempPos.y+BRICKSPRITEHEIGHTOFFSET > ballTempPos.y && b->GetPosition().y - BRICKSPRITEHEIGHTOFFSET < ballTempPos.y &&
+					brickTempPos.x + BRICKSPRITEWIDTHOFFSET > ballTempPos.x && b->GetPosition().x-BRICKSPRITEWIDTHOFFSET/4 < ballTempPos.x)
 			) {
 			b->Destroy();
 			bricksAlive--;
 
-			//FIX HERE La direzione di rimbalzo non e' corretta
-			ball->ChangeVerticalDir();
-
-			/*if ((ball->GetVelocity().y < 0 && ball->GetVelocity().x < 0) ||
-				(ball->GetVelocity().y > 0 && ball->GetVelocity().x > 0)) {
+			if (ballTempPos.y>brickTempPos.y- COLLISIONOFFSET/2 && ballTempPos.y <= brickTempPos.y+BRICKOFFSETHEIGHT/2) {
 				ball->ChangeHorizontalDir();
 			}
 			else {
-				ball->ChangeHorizontalDir();
-			}*/
+				ball->ChangeVerticalDir();
+			}
 		}
 	}
 }
