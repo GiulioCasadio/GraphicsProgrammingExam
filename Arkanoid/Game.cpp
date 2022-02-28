@@ -348,13 +348,13 @@ void Game::CollisionCheck()
 	{
 		Vector2 brickTempPos = b->GetPosition();
 		if (!b->IsDestroyed() &&
-				(brickTempPos.y+BRICKSPRITEHEIGHTOFFSET > ballTempPos.y && b->GetPosition().y - BRICKSPRITEHEIGHTOFFSET < ballTempPos.y &&
-					brickTempPos.x + BRICKSPRITEWIDTHOFFSET > ballTempPos.x && b->GetPosition().x-BRICKSPRITEWIDTHOFFSET/4 < ballTempPos.x)
+				(brickTempPos.y+BRICKSPRITEHEIGHTOFFSET > ballTempPos.y && brickTempPos.y-BRICKSPRITEHEIGHTOFFSET/2 < ballTempPos.y &&
+					brickTempPos.x+BRICKSPRITEWIDTHOFFSET > ballTempPos.x && brickTempPos.x-BRICKSPRITEWIDTHOFFSET/4 < ballTempPos.x)
 			) {
 			b->Destroy();
 			bricksAlive--;
 
-			if (ballTempPos.y>brickTempPos.y- COLLISIONOFFSET/2 && ballTempPos.y <= brickTempPos.y+BRICKOFFSETHEIGHT/2) {
+			if (ballTempPos.y>brickTempPos.y && ballTempPos.y < brickTempPos.y+BRICKSPRITEHEIGHTOFFSET-2) {
 				ball->ChangeHorizontalDir();
 			}
 			else {

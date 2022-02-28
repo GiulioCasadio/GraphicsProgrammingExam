@@ -3,7 +3,7 @@
 #define SPRITEWIDTH 64
 #define BALLOFFSET 34
 
-#define BALLSPEED 1
+#define BALLSPEED 1.5f
 
 using namespace DirectX::SimpleMath;
 using namespace std;
