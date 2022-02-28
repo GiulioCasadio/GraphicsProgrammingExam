@@ -355,9 +355,13 @@ void Game::CollisionCheck()
 			//FIX HERE La direzione di rimbalzo non e' corretta
 			ball->ChangeVerticalDir();
 
-			if (ball->GetVelocity().y < ball->GetVelocity().x) {
+			/*if ((ball->GetVelocity().y < 0 && ball->GetVelocity().x < 0) ||
+				(ball->GetVelocity().y > 0 && ball->GetVelocity().x > 0)) {
 				ball->ChangeHorizontalDir();
 			}
+			else {
+				ball->ChangeHorizontalDir();
+			}*/
 		}
 	}
 }

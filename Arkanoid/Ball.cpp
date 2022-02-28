@@ -87,7 +87,7 @@ void Ball::ChangeHorizontalDir()
 void Ball::UpdatePosition(int paddlex)
 {
 	// check height
-	if (position.y >= screenSize.y - BALLOFFSET && position.x >= paddlex - PADDLEOFFSET / 3 && position.x - BALLOFFSET <= paddlex + PADDLEOFFSET * 2
+	if ((position.y >= screenSize.y - BALLOFFSET && position.x >= paddlex - PADDLEOFFSET / 3 && position.x - BALLOFFSET <= paddlex + PADDLEOFFSET * 2)
 		|| position.y <= 0) {
 		ChangeVerticalDir();
 	}
