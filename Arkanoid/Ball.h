@@ -25,6 +25,7 @@ public:
 	void SetPosition(Vector2);
 	Vector2 GetScreenSize();
 	Vector2 GetVelocity();
+	void SetVelocity(Vector2);
 
 	bool IsAttached();
 	void Attach();
@@ -32,7 +33,6 @@ public:
 
 	void DetachBall();
 	void SetDirection(int);
-	void SwapVelocity();
 	void ChangeVerticalDir();
 	void ChangeHorizontalDir();
 	void UpdatePosition(int);
